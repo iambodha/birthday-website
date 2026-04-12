@@ -1,65 +1,148 @@
-import Image from "next/image";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  INTRO_AUDIO_SRC,
+  PERSISTENCE_ENABLED,
+  readProgress,
+  saveProgress,
+} from "@/lib/experience-state";
+
+const MESSAGE =
+  "To experience the website to the fullest, please go on your computer and turn up the volume and brightness. Enter fullscreen, press enter, and enjoy!";
 
 export default function Home() {
+  const router = useRouter();
+  const [typed, setTyped] = useState("");
+  const [isTypingDone, setIsTypingDone] = useState(false);
+  const [showReadyModal, setShowReadyModal] = useState(false);
+  const [choice, setChoice] = useState<"yes" | "no" | null>(null);
+  const [isDropping, setIsDropping] = useState(false);
+
+  useEffect(() => {
+    if (!PERSISTENCE_ENABLED) {
+      return;
+    }
+
+    const progress = readProgress();
+
+    if (progress.memoryComplete || progress.accepted) {
+      router.replace("/memory");
+    }
+  }, [router]);
+
+  useEffect(() => {
+    let index = 0;
+    const timer = window.setInterval(() => {
+      index += 1;
+      setTyped(MESSAGE.slice(0, index));
+
+      if (index >= MESSAGE.length) {
+        window.clearInterval(timer);
+        setIsTypingDone(true);
+
+        if (PERSISTENCE_ENABLED) {
+          const progress = readProgress();
+          saveProgress({
+            accepted: progress.accepted,
+            memoryComplete: progress.memoryComplete,
+          });
+        }
+      }
+    }, 10);
+
+    return () => {
+      window.clearInterval(timer);
+    };
+  }, []);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Enter" && isTypingDone && !showReadyModal && !isDropping) {
+        setShowReadyModal(true);
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [isTypingDone, showReadyModal, isDropping]);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <main className="relative min-h-screen overflow-hidden bg-[#f3e8d8]">
+      <div
+        className={`absolute inset-0 z-10 flex items-center justify-center bg-black px-6 transition-transform duration-[1200ms] ease-[cubic-bezier(0.2,0.9,0.25,1)] ${isDropping ? "translate-y-full" : "translate-y-0"}`}
+      >
+        <div className="w-full max-w-4xl text-center">
+          <p className="text-xl leading-relaxed text-white sm:text-3xl">
+            {typed}
+            <span className="ml-1 inline-block h-[1.1em] w-[0.08em] animate-pulse bg-white align-[-0.15em]" />
           </p>
+
+          {isTypingDone && !showReadyModal ? (
+            <p className="mt-8 text-sm uppercase tracking-[0.2em] text-zinc-300 sm:text-base">
+              Press Enter To Continue
+            </p>
+          ) : null}
+
+          {choice === "no" ? (
+            <p className="mt-8 text-sm uppercase tracking-[0.15em] text-red-400 sm:text-base">
+              Waiting For Your Approval Queen.
+            </p>
+          ) : null}
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+
+        {showReadyModal ? (
+          <div className="absolute inset-0 z-10 grid place-items-center bg-black/75 px-6">
+            <div className="w-full max-w-xl border-4 border-zinc-200 bg-zinc-900 p-6 text-center shadow-[0_0_0_4px_#0f0f0f,0_20px_60px_rgba(0,0,0,0.7)] sm:p-8">
+              <p className="mb-6 text-3xl uppercase tracking-[0.08em] text-white sm:text-4xl">
+                Are You Ready?
+              </p>
+              <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setChoice("yes");
+                    setShowReadyModal(false);
+
+                    if (PERSISTENCE_ENABLED) {
+                      saveProgress({ accepted: true, memoryComplete: false });
+                    }
+
+                    const audio = new Audio(INTRO_AUDIO_SRC);
+                    const introAudioWindow = window as Window & {
+                      __introAudio?: HTMLAudioElement;
+                    };
+
+                    introAudioWindow.__introAudio = audio;
+                    void audio.play();
+                    router.push("/memory");
+                  }}
+                  className="border-2 border-green-300 bg-green-600 px-7 py-3 text-lg font-bold uppercase tracking-[0.12em] text-white shadow-[0_4px_0_0_#166534] transition hover:brightness-110 active:translate-y-[2px] active:shadow-[0_2px_0_0_#166534]"
+                >
+                  Yes
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setChoice("no");
+                    setShowReadyModal(false);
+
+                    if (PERSISTENCE_ENABLED) {
+                      saveProgress({ accepted: false, memoryComplete: false });
+                    }
+                  }}
+                  className="border-2 border-red-300 bg-red-600 px-7 py-3 text-lg font-bold uppercase tracking-[0.12em] text-white shadow-[0_4px_0_0_#991b1b] transition hover:brightness-110 active:translate-y-[2px] active:shadow-[0_2px_0_0_#991b1b]"
+                >
+                  No
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
+      </div>
+    </main>
   );
 }
