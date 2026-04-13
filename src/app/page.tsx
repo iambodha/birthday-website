@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  INTRO_AUDIO_SRC,
+  STARTER_HAPPY_BIRTHDAY_SRC,
   PERSISTENCE_ENABLED,
   readProgress,
   saveProgress,
@@ -27,8 +27,8 @@ export default function Home() {
 
     const progress = readProgress();
 
-    if (progress.memoryComplete || progress.accepted) {
-      router.replace("/memory");
+    if (progress.introComplete || progress.accepted) {
+      router.replace("/happy-birthday");
     }
   }, [router]);
 
@@ -46,7 +46,7 @@ export default function Home() {
           const progress = readProgress();
           saveProgress({
             accepted: progress.accepted,
-            memoryComplete: progress.memoryComplete,
+            introComplete: progress.introComplete,
           });
         }
       }
@@ -108,17 +108,17 @@ export default function Home() {
                     setShowReadyModal(false);
 
                     if (PERSISTENCE_ENABLED) {
-                      saveProgress({ accepted: true, memoryComplete: false });
+                      saveProgress({ accepted: true, introComplete: false });
                     }
 
-                    const audio = new Audio(INTRO_AUDIO_SRC);
+                    const audio = new Audio(STARTER_HAPPY_BIRTHDAY_SRC);
                     const introAudioWindow = window as Window & {
                       __introAudio?: HTMLAudioElement;
                     };
 
                     introAudioWindow.__introAudio = audio;
                     void audio.play();
-                    router.push("/memory");
+                    router.push("/happy-birthday");
                   }}
                   className="border-2 border-green-300 bg-green-600 px-7 py-3 text-lg font-bold uppercase tracking-[0.12em] text-white shadow-[0_4px_0_0_#166534] transition hover:brightness-110 active:translate-y-[2px] active:shadow-[0_2px_0_0_#166534]"
                 >
@@ -131,7 +131,7 @@ export default function Home() {
                     setShowReadyModal(false);
 
                     if (PERSISTENCE_ENABLED) {
-                      saveProgress({ accepted: false, memoryComplete: false });
+                      saveProgress({ accepted: false, introComplete: false });
                     }
                   }}
                   className="border-2 border-red-300 bg-red-600 px-7 py-3 text-lg font-bold uppercase tracking-[0.12em] text-white shadow-[0_4px_0_0_#991b1b] transition hover:brightness-110 active:translate-y-[2px] active:shadow-[0_2px_0_0_#991b1b]"

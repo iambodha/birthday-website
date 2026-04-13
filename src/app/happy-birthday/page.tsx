@@ -1,0 +1,305 @@
+"use client";
+
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  DEFAULT_BIRTHDAY_CONTENT,
+  loadBirthdayContent,
+} from "@/lib/birthday-content";
+import {
+  CAT_HAPPY_BIRTHDAY_SRC,
+  DROP_DELAY_MS,
+  DROP_DURATION_MS,
+  SINGING_SRC,
+} from "@/lib/experience-state";
+
+export default function HappyBirthdayPage() {
+  const [shouldDrop, setShouldDrop] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [birthdayContent, setBirthdayContent] = useState(DEFAULT_BIRTHDAY_CONTENT);
+  const [typedMessage, setTypedMessage] = useState("");
+  const [messageIndex, setMessageIndex] = useState(0);
+  const [isDeletingMessage, setIsDeletingMessage] = useState(false);
+  const catAudioRef = useRef<HTMLAudioElement | null>(null);
+  const singingAudioRef = useRef<HTMLAudioElement | null>(null);
+  const confettiTimerRef = useRef<number | null>(null);
+  const didTriggerConfettiRef = useRef(false);
+  const confettiPieces = useMemo(
+    () =>
+      Array.from({ length: 90 }, (_, index) => ({
+        id: index,
+        left: Math.random() * 100,
+        duration: 4.8 + Math.random() * 4.2,
+        delay: -Math.random() * 8,
+        drift: (Math.random() - 0.5) * 240,
+        size: 8 + Math.random() * 10,
+        rotate: Math.random() * 540,
+        color: ["#ef4444", "#f59e0b", "#eab308", "#22c55e", "#14b8a6", "#3b82f6", "#ec4899"][
+          index % 7
+        ],
+      })),
+    [],
+  );
+  const carouselMessages = birthdayContent.messages;
+
+  useEffect(() => {
+    let isMounted = true;
+
+    void loadBirthdayContent().then((loadedContent) => {
+      if (isMounted) {
+        setBirthdayContent(loadedContent);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    // Drop the curtain after a delay
+    const dropTimer = window.setTimeout(() => {
+      setShouldDrop(true);
+    }, DROP_DELAY_MS);
+
+    return () => {
+      window.clearTimeout(dropTimer);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!showConfetti) {
+      setTypedMessage("");
+      setMessageIndex(0);
+      setIsDeletingMessage(false);
+      return;
+    }
+
+    const currentMessage = carouselMessages[messageIndex % carouselMessages.length];
+
+    const timer = window.setTimeout(
+      () => {
+        if (!isDeletingMessage) {
+          if (typedMessage.length < currentMessage.length) {
+            setTypedMessage(currentMessage.slice(0, typedMessage.length + 1));
+          } else {
+            setIsDeletingMessage(true);
+          }
+          return;
+        }
+
+        if (typedMessage.length > 0) {
+          setTypedMessage(currentMessage.slice(0, typedMessage.length - 1));
+        } else {
+          setIsDeletingMessage(false);
+          setMessageIndex((prev) => (prev + 1) % carouselMessages.length);
+        }
+      },
+      !isDeletingMessage
+        ? typedMessage.length === currentMessage.length
+          ? 1500
+          : 42
+        : typedMessage.length === 0
+          ? 320
+          : 26,
+    );
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [carouselMessages, isDeletingMessage, messageIndex, showConfetti, typedMessage]);
+
+  useEffect(() => {
+    const globalWindow = window as Window & {
+      __introAudio?: HTMLAudioElement;
+      __catBirthdayAudio?: HTMLAudioElement;
+      __singingAudio?: HTMLAudioElement;
+    };
+    const introAudio = globalWindow.__introAudio;
+    let isDisposed = false;
+
+    const startCatBirthdayTrack = () => {
+      if (isDisposed || catAudioRef.current) {
+        return;
+      }
+
+      const catAudio = new Audio(CAT_HAPPY_BIRTHDAY_SRC);
+      catAudio.preload = "auto";
+      catAudio.volume = 1;
+      let hasStartedSinging = false;
+
+      const onTimeUpdate = () => {
+        if (!Number.isFinite(catAudio.duration) || catAudio.duration <= 0) {
+          return;
+        }
+
+        const singingStart = Math.max(0, catAudio.duration - 1.5);
+        if (!hasStartedSinging && catAudio.currentTime >= singingStart) {
+          hasStartedSinging = true;
+          const singingAudio = new Audio(SINGING_SRC);
+          singingAudio.preload = "auto";
+          singingAudioRef.current = singingAudio;
+          globalWindow.__singingAudio = singingAudio;
+
+          const maybeStartConfetti = () => {
+            if (!didTriggerConfettiRef.current) {
+              didTriggerConfettiRef.current = true;
+              setShowConfetti(true);
+            }
+          };
+
+          const onSingingTimeUpdate = () => {
+            if (singingAudio.currentTime >= 5) {
+              maybeStartConfetti();
+              singingAudio.removeEventListener("timeupdate", onSingingTimeUpdate);
+            }
+          };
+
+          singingAudio.addEventListener("timeupdate", onSingingTimeUpdate);
+
+          confettiTimerRef.current = window.setTimeout(() => {
+            if (!isDisposed) {
+              maybeStartConfetti();
+            }
+          }, 5000);
+
+          void singingAudio.play().catch(() => {
+            // Ignore autoplay interruptions and keep the experience flow safe.
+          });
+
+          singingAudio.addEventListener(
+            "ended",
+            () => {
+              singingAudio.removeEventListener("timeupdate", onSingingTimeUpdate);
+            },
+            { once: true },
+          );
+        }
+
+        const fadeStart = Math.max(0, catAudio.duration - 3);
+
+        if (catAudio.currentTime >= fadeStart) {
+          const remaining = Math.max(0, catAudio.duration - catAudio.currentTime);
+          catAudio.volume = Math.max(0, Math.min(1, remaining / 3));
+        }
+      };
+
+      catAudio.addEventListener("timeupdate", onTimeUpdate);
+
+      catAudioRef.current = catAudio;
+      globalWindow.__catBirthdayAudio = catAudio;
+
+      void catAudio.play().catch(() => {
+        // Ignore autoplay interruptions and keep the experience flow safe.
+      });
+
+      catAudio.addEventListener(
+        "ended",
+        () => {
+          catAudio.removeEventListener("timeupdate", onTimeUpdate);
+          if (catAudioRef.current === catAudio) {
+            catAudioRef.current = null;
+          }
+          if (globalWindow.__catBirthdayAudio === catAudio) {
+            delete globalWindow.__catBirthdayAudio;
+          }
+        },
+        { once: true },
+      );
+    };
+
+    if (!introAudio || introAudio.ended) {
+      startCatBirthdayTrack();
+    } else {
+      introAudio.addEventListener("ended", startCatBirthdayTrack, { once: true });
+    }
+
+    return () => {
+      isDisposed = true;
+
+      if (introAudio && !introAudio.ended) {
+        introAudio.removeEventListener("ended", startCatBirthdayTrack);
+      }
+
+      if (catAudioRef.current) {
+        catAudioRef.current.pause();
+        catAudioRef.current.currentTime = 0;
+
+        if (globalWindow.__catBirthdayAudio === catAudioRef.current) {
+          delete globalWindow.__catBirthdayAudio;
+        }
+
+        catAudioRef.current = null;
+      }
+
+      if (singingAudioRef.current) {
+        singingAudioRef.current.pause();
+        singingAudioRef.current.currentTime = 0;
+
+        if (globalWindow.__singingAudio === singingAudioRef.current) {
+          delete globalWindow.__singingAudio;
+        }
+
+        singingAudioRef.current = null;
+      }
+
+      if (confettiTimerRef.current !== null) {
+        window.clearTimeout(confettiTimerRef.current);
+        confettiTimerRef.current = null;
+      }
+    };
+  }, []);
+
+  return (
+    <main className="celebration-page">
+      {showConfetti ? (
+        <div className="confetti-layer" aria-hidden="true">
+          {confettiPieces.map((piece) => (
+            <span
+              key={piece.id}
+              className="confetti-piece"
+              style={
+                {
+                  left: `${piece.left}%`,
+                  width: `${piece.size}px`,
+                  height: `${piece.size * 0.55}px`,
+                  backgroundColor: piece.color,
+                  ["--confetti-duration" as string]: `${piece.duration}s`,
+                  ["--confetti-delay" as string]: `${piece.delay}s`,
+                  ["--confetti-drift" as string]: `${piece.drift}px`,
+                  ["--confetti-rotate" as string]: `${piece.rotate}deg`,
+                } as React.CSSProperties
+              }
+            />
+          ))}
+        </div>
+      ) : null}
+
+      {showConfetti ? (
+        <section className="celebration-hero" aria-live="polite">
+          <p className="celebration-message-carousel">
+            {typedMessage}
+            <span className="celebration-message-cursor" aria-hidden="true" />
+          </p>
+          <img
+            src="/cake.gif"
+            alt="Pink birthday cake"
+            className="celebration-cake"
+            loading="eager"
+            decoding="async"
+          />
+          <h1 className="celebration-title">{birthdayContent.title}</h1>
+        </section>
+      ) : null}
+
+      <div
+        className={`celebration-curtain ${shouldDrop ? "celebration-curtain--gone" : ""}`}
+        style={{ transitionDuration: `${DROP_DURATION_MS}ms` }}
+        aria-hidden="true"
+      />
+
+      <div className="sr-only" aria-live="polite">
+        {shouldDrop ? "Curtain dropped" : "Curtain dropping"}
+      </div>
+    </main>
+  );
+}
