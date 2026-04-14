@@ -3,6 +3,8 @@ export type BirthdayContent = {
   messages: string[];
 };
 
+export const name = "Bhuvi";
+
 export const DEFAULT_BIRTHDAY_CONTENT: BirthdayContent = {
   title: "Happy Birthday!",
   messages: [

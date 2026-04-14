@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   DEFAULT_BIRTHDAY_CONTENT,
   loadBirthdayContent,
@@ -13,8 +14,13 @@ import {
 } from "@/lib/experience-state";
 
 export default function HappyBirthdayPage() {
+  const router = useRouter();
   const [shouldDrop, setShouldDrop] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [showCakePrompt, setShowCakePrompt] = useState(false);
+  const [isCakeChallengeActive, setIsCakeChallengeActive] = useState(false);
+  const [cakeClicks, setCakeClicks] = useState(0);
+  const [cakePopTick, setCakePopTick] = useState(0);
   const [birthdayContent, setBirthdayContent] = useState(DEFAULT_BIRTHDAY_CONTENT);
   const [typedMessage, setTypedMessage] = useState("");
   const [messageIndex, setMessageIndex] = useState(0);
@@ -22,6 +28,7 @@ export default function HappyBirthdayPage() {
   const catAudioRef = useRef<HTMLAudioElement | null>(null);
   const singingAudioRef = useRef<HTMLAudioElement | null>(null);
   const confettiTimerRef = useRef<number | null>(null);
+  const cakePromptTimerRef = useRef<number | null>(null);
   const didTriggerConfettiRef = useRef(false);
   const confettiPieces = useMemo(
     () =>
@@ -109,6 +116,16 @@ export default function HappyBirthdayPage() {
   }, [carouselMessages, isDeletingMessage, messageIndex, showConfetti, typedMessage]);
 
   useEffect(() => {
+    void router.prefetch("/puzzle");
+  }, [router]);
+
+  useEffect(() => {
+    if (cakeClicks >= 3 && !isCakeChallengeActive) {
+      router.push("/puzzle");
+    }
+  }, [cakeClicks, isCakeChallengeActive, router]);
+
+  useEffect(() => {
     const globalWindow = window as Window & {
       __introAudio?: HTMLAudioElement;
       __catBirthdayAudio?: HTMLAudioElement;
@@ -170,6 +187,18 @@ export default function HappyBirthdayPage() {
             "ended",
             () => {
               singingAudio.removeEventListener("timeupdate", onSingingTimeUpdate);
+
+              if (cakePromptTimerRef.current !== null) {
+                window.clearTimeout(cakePromptTimerRef.current);
+              }
+
+              cakePromptTimerRef.current = window.setTimeout(() => {
+                if (!isDisposed) {
+                  setCakeClicks(0);
+                  setShowCakePrompt(true);
+                  setIsCakeChallengeActive(true);
+                }
+              }, 3000);
             },
             { once: true },
           );
@@ -246,8 +275,28 @@ export default function HappyBirthdayPage() {
         window.clearTimeout(confettiTimerRef.current);
         confettiTimerRef.current = null;
       }
+
+      if (cakePromptTimerRef.current !== null) {
+        window.clearTimeout(cakePromptTimerRef.current);
+        cakePromptTimerRef.current = null;
+      }
     };
   }, []);
+
+  const handleCakeClick = () => {
+    if (!isCakeChallengeActive) {
+      return;
+    }
+
+    setCakePopTick((prev) => prev + 1);
+    const nextClicks = cakeClicks + 1;
+    setCakeClicks(nextClicks);
+
+    if (nextClicks >= 3) {
+      setIsCakeChallengeActive(false);
+      setShowCakePrompt(false);
+    }
+  };
 
   return (
     <main className="celebration-page">
@@ -280,13 +329,26 @@ export default function HappyBirthdayPage() {
             {typedMessage}
             <span className="celebration-message-cursor" aria-hidden="true" />
           </p>
-          <img
-            src="/cake.gif"
-            alt="Pink birthday cake"
-            className="celebration-cake"
-            loading="eager"
-            decoding="async"
-          />
+          <button
+            type="button"
+            className="celebration-cake-button"
+            onClick={handleCakeClick}
+            aria-label="Birthday cake"
+          >
+            <img
+              src="/cake.gif"
+              alt="Pink birthday cake"
+              className={`celebration-cake ${isCakeChallengeActive ? `celebration-cake--pop-${cakePopTick % 2 === 0 ? "a" : "b"}` : ""}`}
+              loading="eager"
+              decoding="async"
+            />
+          </button>
+
+          {showCakePrompt ? (
+            <div className="celebration-cake-prompt" role="status" aria-live="polite">
+              Click on your birthday cake three times.
+            </div>
+          ) : null}
           <h1 className="celebration-title">{birthdayContent.title}</h1>
         </section>
       ) : null}
