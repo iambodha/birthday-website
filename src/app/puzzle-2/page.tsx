@@ -3,6 +3,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
+  startPuzzleBackgroundMusic,
+  stopPuzzleBackgroundMusic,
+} from "@/lib/background-music";
+import {
   DEFAULT_PUZZLE_TWO_CONTENT,
   type PuzzleTwoContent,
   loadPuzzleTwoContent,
@@ -132,6 +136,10 @@ export default function PuzzleTwoPage() {
     void router.prefetch("/puzzle-3");
   }, [router]);
 
+  useEffect(() => {
+    startPuzzleBackgroundMusic();
+  }, []);
+
   const roughQuestionCount = puzzleContent.roughQuestions.length;
   const acrossClues = puzzleContent.crosswordClues.across.map((clue) => ({
     ...clue,
@@ -233,10 +241,13 @@ export default function PuzzleTwoPage() {
 
     solvedSequenceStartedRef.current = true;
     setShowSuccessPopup(true);
-    const audio = new Audio(MISSION_SUCCESS_SOUND_SRC);
-    void audio.play().catch(() => {
-      // Ignore autoplay interruptions.
-    });
+    void (async () => {
+      await stopPuzzleBackgroundMusic(900);
+      const audio = new Audio(MISSION_SUCCESS_SOUND_SRC);
+      void audio.play().catch(() => {
+        // Ignore autoplay interruptions.
+      });
+    })();
   }, [isSolved, router]);
 
   const onCellChange = (key: string, value: string) => {

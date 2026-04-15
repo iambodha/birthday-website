@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { DEFAULT_NAME, loadBirthdayName } from "@/lib/birthday-content";
+import { startLetterBackgroundMusic } from "@/lib/background-music";
 
 export default function LetterPage() {
   const [birthdayName, setBirthdayName] = useState(DEFAULT_NAME);
@@ -18,6 +19,10 @@ export default function LetterPage() {
     return () => {
       isMounted = false;
     };
+  }, []);
+
+  useEffect(() => {
+    startLetterBackgroundMusic();
   }, []);
 
   return (

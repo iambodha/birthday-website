@@ -4,6 +4,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { DEFAULT_NAME, loadBirthdayName } from "@/lib/birthday-content";
 import {
+  startPuzzleBackgroundMusic,
+  stopPuzzleBackgroundMusic,
+} from "@/lib/background-music";
+import {
   createGame,
   getAllSquares,
   getBoardPieces,
@@ -76,6 +80,10 @@ export default function PuzzlePage() {
     return () => {
       isMounted = false;
     };
+  }, []);
+
+  useEffect(() => {
+    startPuzzleBackgroundMusic();
   }, []);
 
   const clearSelection = () => {
@@ -178,6 +186,7 @@ export default function PuzzlePage() {
       confettiTimerRef.current = null;
     }, 850);
 
+    await stopPuzzleBackgroundMusic(900);
     await playSoundAndWait(CLAPPING_SOUND_SRC);
     await playSoundAndWait(GOOD_GIRL_SOUND_SRC);
     setShowSolvedPopup(true);
@@ -206,6 +215,8 @@ export default function PuzzlePage() {
       window.clearTimeout(confettiTimerRef.current);
       confettiTimerRef.current = null;
     }
+
+    startPuzzleBackgroundMusic();
   };
 
   const onSquareClick = (square: Square) => {

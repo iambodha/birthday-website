@@ -3,6 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { DEFAULT_NAME, loadBirthdayName } from "@/lib/birthday-content";
+import {
+  startPuzzleBackgroundMusic,
+  stopPuzzleBackgroundMusic,
+} from "@/lib/background-music";
 
 type Node = {
   id: number;
@@ -145,6 +149,8 @@ export default function PuzzleThreePage() {
       window.clearTimeout(popupTimerRef.current);
       popupTimerRef.current = null;
     }
+
+    startPuzzleBackgroundMusic();
   };
 
   // Initialize puzzle
@@ -201,6 +207,8 @@ export default function PuzzleThreePage() {
     if (!isSolved || showSuccessPopup) {
       return;
     }
+
+    void stopPuzzleBackgroundMusic(900);
 
     if (popupTimerRef.current !== null) {
       window.clearTimeout(popupTimerRef.current);
@@ -317,6 +325,8 @@ export default function PuzzleThreePage() {
       window.clearTimeout(popupTimerRef.current);
       popupTimerRef.current = null;
     }
+
+    startPuzzleBackgroundMusic();
   };
 
   return (
