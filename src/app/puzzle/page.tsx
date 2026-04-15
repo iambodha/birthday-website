@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { name } from "@/lib/birthday-content";
+import { DEFAULT_NAME, loadBirthdayName } from "@/lib/birthday-content";
 import {
   createGame,
   getAllSquares,
@@ -32,6 +32,7 @@ export default function PuzzlePage() {
   const [showSolvedConfetti, setShowSolvedConfetti] = useState(false);
   const [showSolvedPopup, setShowSolvedPopup] = useState(false);
   const [lastError, setLastError] = useState(false);
+  const [birthdayName, setBirthdayName] = useState(DEFAULT_NAME);
   const [fenHistory, setFenHistory] = useState<string[]>([PUZZLE_FEN]);
   const solvedSequenceStartedRef = useRef(false);
   const confettiTimerRef = useRef<number | null>(null);
@@ -60,6 +61,20 @@ export default function PuzzlePage() {
         window.clearTimeout(confettiTimerRef.current);
         confettiTimerRef.current = null;
       }
+    };
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    void loadBirthdayName().then((loadedName) => {
+      if (isMounted) {
+        setBirthdayName(loadedName);
+      }
+    });
+
+    return () => {
+      isMounted = false;
     };
   }, []);
 
@@ -305,7 +320,7 @@ export default function PuzzlePage() {
       ) : null}
 
       <section className="puzzle-stage">
-        <p className="puzzle-title puzzle-title--line-1">To know it&apos;s really you, {name},</p>
+        <p className="puzzle-title puzzle-title--line-1">To know it&apos;s really you, {birthdayName},</p>
         <p className="puzzle-title puzzle-title--line-2">you gotta solve a puzzle.</p>
         <p className="puzzle-turn">Turn: {getTurnLabel(game)}</p>
         <p className="puzzle-status">

@@ -50,7 +50,7 @@ export default function Home() {
           });
         }
       }
-    }, 10);
+    }, 50);
 
     return () => {
       window.clearInterval(timer);

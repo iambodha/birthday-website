@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crossword Puzzle Grid</title>
+    <style>
+        :root {
+            --cell-size: 40px;
+            --border-color: #333;
+        }
+
+        body {
+            font-family: sans-serif;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+
+        .crossword-grid {
+            display: grid;
+            /* 11 columns based on the longest word: SKATEBOARD (10) + offset */
+            grid-template-columns: repeat(11, var(--cell-size));
+            /* 11 rows to accommodate the vertical layout */
+            grid-template-rows: repeat(11, var(--cell-size));
+            border: 2px solid var(--border-color);
+            background-color: var(--border-color);
+            gap: 1px;
+        }
+
+        .cell {
+            background-color: #fff;
+            position: relative;
+            width: var(--cell-size);
+            height: var(--cell-size);
+        }
+
+        /* Solid blocks */
+        .cell.solid {
+            background-color: #333;
+        }
+
+        /* Numbering in the top-left of the cell */
+        .cell::before {
+            content: attr(data-number);
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            font-size: 10px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        /* Specific positioning for the blank squares */
+        /* Note: Rows and Columns are 1-indexed in CSS Grid */
+    </style>
+</head>
+<body>
+
+<div class="crossword-grid">
+    <div class="cell solid"></div>
+    <div class="cell" data-number="3"></div> <div class="cell solid"></div>
+    <div class="cell solid"></div>
+    <div class="cell" data-number="7"></div> <div class="cell solid"></div>
+    <div class="cell" data-number="10"></div> <div class="cell solid"></div>
+    <div class="cell solid"></div>
+    <div class="cell solid"></div>
+    <div class="cell solid"></div>
+
+    <div class="cell" data-number="1"></div> <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell solid"></div>
+    <div class="cell"></div>
+    <div class="cell solid"></div>
+    <div class="cell" data-number="12"></div> <div class="cell solid"></div>
+    <div class="cell solid"></div>
+
+    <div class="cell solid"></div>
+    <div class="cell"></div>
+    <div class="cell solid"></div>
+    <div class="cell" data-number="4"></div> <div class="cell solid"></div>
+    <div class="cell solid"></div>
+    <div class="cell"></div>
+    <div class="cell solid"></div>
+    <div class="cell"></div>
+    <div class="cell solid"></div>
+    <div class="cell solid"></div>
+
+    <div class="cell solid"></div>
+    <div class="cell"></div>
+    <div class="cell solid"></div>
+    <div class="cell"></div>
+    <div class="cell solid"></div>
+    <div class="cell" data-number="8"></div> <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell solid"></div>
+    <div class="cell solid"></div>
+
+    <div class="cell solid"></div>
+    <div class="cell solid"></div>
+    <div class="cell solid"></div>
+    <div class="cell"></div>
+    <div class="cell solid"></div>
+    <div class="cell solid"></div>
+    <div class="cell" data-number="11"></div> <div class="cell solid"></div>
+    <div class="cell"></div>
+    <div class="cell solid"></div>
+    <div class="cell" data-number="13"></div> <div class="cell solid"></div>
+    <div class="cell solid"></div>
+    <div class="cell" data-number="5"></div> <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell solid"></div>
+    <div class="cell"></div>
+
+    <div class="cell solid"></div>
+    <div class="cell solid"></div>
+    <div class="cell solid"></div>
+    <div class="cell"></div>
+    <div class="cell solid"></div>
+    <div class="cell solid"></div>
+    <div class="cell"></div>
+    <div class="cell solid"></div>
+    <div class="cell"></div>
+    <div class="cell solid"></div>
+    <div class="cell"></div>
+
+    <div class="cell solid"></div>
+    <div class="cell solid"></div>
+    <div class="cell solid"></div>
+    <div class="cell solid"></div>
+    <div class="cell" data-number="9"></div> <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+
+    <div class="cell solid"></div>
+    <div class="cell solid"></div>
+    <div class="cell solid"></div>
+    <div class="cell solid"></div>
+    <div class="cell solid"></div>
+    <div class="cell solid"></div>
+    <div class="cell solid"></div>
+    <div class="cell solid"></div>
+    <div class="cell"></div>
+    <div class="cell solid"></div>
+    <div class="cell"></div>
+
+    <div class="cell solid"></div>
+    <div class="cell solid"></div>
+    <div class="cell" data-number="6"></div> <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell solid"></div>
+    <div class="cell"></div>
+
+    <div class="cell" data-number="2"></div> <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell solid"></div>
+</div>
+
+</body>
+</html>
