@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   STARTER_HAPPY_BIRTHDAY_SRC,
@@ -19,6 +19,14 @@ export default function Home() {
   const [showReadyModal, setShowReadyModal] = useState(false);
   const [choice, setChoice] = useState<"yes" | "no" | null>(null);
   const [isDropping, setIsDropping] = useState(false);
+  const typingAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  const playClickSound = () => {
+    const clickAudio = new Audio("/Click.mp3");
+    void clickAudio.play().catch(() => {
+      // Ignore playback failures when browser blocks immediate audio.
+    });
+  };
 
   useEffect(() => {
     if (!PERSISTENCE_ENABLED) {
@@ -33,6 +41,27 @@ export default function Home() {
   }, [router]);
 
   useEffect(() => {
+    const typingAudio = new Audio("/Typing.mp3");
+    typingAudio.loop = true;
+    typingAudio.volume = 0.6;
+    typingAudioRef.current = typingAudio;
+
+    const stopTypingAudio = () => {
+      const currentAudio = typingAudioRef.current;
+
+      if (!currentAudio) {
+        return;
+      }
+
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+      typingAudioRef.current = null;
+    };
+
+    void typingAudio.play().catch(() => {
+      // Ignore autoplay rejections; audio will play once user interacts.
+    });
+
     let index = 0;
     const timer = window.setInterval(() => {
       index += 1;
@@ -40,6 +69,7 @@ export default function Home() {
 
       if (index >= MESSAGE.length) {
         window.clearInterval(timer);
+        stopTypingAudio();
         setIsTypingDone(true);
 
         if (PERSISTENCE_ENABLED) {
@@ -54,6 +84,7 @@ export default function Home() {
 
     return () => {
       window.clearInterval(timer);
+      stopTypingAudio();
     };
   }, []);
 
@@ -104,6 +135,7 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={() => {
+                    playClickSound();
                     setChoice("yes");
                     setShowReadyModal(false);
 
@@ -127,6 +159,7 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={() => {
+                    playClickSound();
                     setChoice("no");
                     setShowReadyModal(false);
 

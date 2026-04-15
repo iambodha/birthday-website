@@ -283,7 +283,16 @@ export default function HappyBirthdayPage() {
     };
   }, []);
 
+  const playClickSound = () => {
+    const clickAudio = new Audio("/Click.mp3");
+    void clickAudio.play().catch(() => {
+      // Ignore playback failures when browser blocks immediate audio.
+    });
+  };
+
   const handleCakeClick = () => {
+    playClickSound();
+
     if (!isCakeChallengeActive) {
       return;
     }
