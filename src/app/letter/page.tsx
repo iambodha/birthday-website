@@ -57,42 +57,12 @@ export default function LetterPage() {
               color: "#1e293b",
               fontSize: "clamp(1.7rem, 2.8vw, 2.5rem)",
               letterSpacing: "0.04em",
-              textTransform: "uppercase",
-              fontWeight: 900,
-              textShadow: "0 10px 22px rgba(30, 41, 59, 0.16)",
+              fontFamily: "Mojangles",
             }}
           >
-            A Letter To You
+            Here's a letter to you {birthdayName}
           </h1>
-          <p
-            style={{
-              margin: "0.65rem 0 0",
-              color: "#475569",
-              fontSize: "clamp(0.95rem, 1.6vw, 1.08rem)",
-            }}
-          >
-            for {birthdayName}
-          </p>
         </header>
-
-        <article
-          style={{
-            whiteSpace: "pre-wrap",
-            textAlign: "center",
-            color: "#0f172a",
-            fontSize: "clamp(1rem, 1.4vw, 1.15rem)",
-            lineHeight: 1.9,
-            fontFamily: "Georgia, Times New Roman, serif",
-            letterSpacing: "0.01em",
-            borderRadius: "1rem",
-            border: "1px solid rgba(148, 163, 184, 0.35)",
-            background: "rgba(248, 250, 252, 0.72)",
-            padding: "clamp(1.1rem, 2.2vw, 1.8rem)",
-            boxShadow: "inset 0 1px 0 rgba(255, 255, 255, 0.7)",
-          }}
-        >
-          {`Dear ${birthdayName}, Some Yap`}
-        </article>
 
         <footer style={{ textAlign: "center", marginTop: "1.2rem" }}>
           <p
