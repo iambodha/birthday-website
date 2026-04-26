@@ -26,6 +26,7 @@ export type PuzzleTwoContent = {
 export type PrivateBirthdayContent = BirthdayContent & {
   name: string;
   puzzleTwo: PuzzleTwoContent;
+  isPublic: boolean;
 };
 
 export const DEFAULT_NAME = "Birthday Star";
@@ -137,10 +138,22 @@ function normalizePrivateContent(input: unknown): PrivateBirthdayContent {
       ...DEFAULT_BIRTHDAY_CONTENT,
       name: DEFAULT_NAME,
       puzzleTwo: DEFAULT_PUZZLE_TWO_CONTENT,
+      isPublic: false,
     };
   }
 
   const candidate = input as Record<string, unknown>;
+  const isPublic = typeof candidate.isPublic === "boolean" ? candidate.isPublic : false;
+
+  // If in public mode, return all defaults
+  if (isPublic) {
+    return {
+      ...DEFAULT_BIRTHDAY_CONTENT,
+      name: DEFAULT_NAME,
+      puzzleTwo: DEFAULT_PUZZLE_TWO_CONTENT,
+      isPublic: true,
+    };
+  }
 
   const name =
     typeof candidate.name === "string" && candidate.name.trim().length > 0
@@ -164,6 +177,7 @@ function normalizePrivateContent(input: unknown): PrivateBirthdayContent {
     title,
     messages: messages.length > 0 ? messages : DEFAULT_BIRTHDAY_CONTENT.messages,
     puzzleTwo: normalizePuzzleTwo(candidate.puzzleTwo),
+    isPublic: false,
   };
 }
 

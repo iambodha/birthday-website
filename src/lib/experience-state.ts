@@ -5,6 +5,7 @@ export const DROP_DURATION_MS = 12000;
 export const STARTER_HAPPY_BIRTHDAY_SRC = "/Intro_Music.mp3";
 export const CAT_HAPPY_BIRTHDAY_SRC = "/Cats_Happy_Birthday.mp3";
 export const SINGING_SRC = "/Singing.mp3";
+export const PUBLIC_BIRTHDAY_SONG_SRC = "/Public_Birthday_Song.mp3";
 
 export type ProgressState = {
   accepted: boolean;

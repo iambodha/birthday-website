@@ -5,12 +5,14 @@ import { useRouter } from "next/navigation";
 import {
   DEFAULT_BIRTHDAY_CONTENT,
   loadBirthdayContent,
+  loadPrivateBirthdayContent,
 } from "@/lib/birthday-content";
 import {
   CAT_HAPPY_BIRTHDAY_SRC,
   DROP_DELAY_MS,
   DROP_DURATION_MS,
   SINGING_SRC,
+  PUBLIC_BIRTHDAY_SONG_SRC,
 } from "@/lib/experience-state";
 
 export default function HappyBirthdayPage() {
@@ -22,6 +24,7 @@ export default function HappyBirthdayPage() {
   const [cakeClicks, setCakeClicks] = useState(0);
   const [cakePopTick, setCakePopTick] = useState(0);
   const [birthdayContent, setBirthdayContent] = useState(DEFAULT_BIRTHDAY_CONTENT);
+  const [isPublic, setIsPublic] = useState(false);
   const [typedMessage, setTypedMessage] = useState("");
   const [messageIndex, setMessageIndex] = useState(0);
   const [isDeletingMessage, setIsDeletingMessage] = useState(false);
@@ -51,11 +54,14 @@ export default function HappyBirthdayPage() {
   useEffect(() => {
     let isMounted = true;
 
-    void loadBirthdayContent().then((loadedContent) => {
-      if (isMounted) {
-        setBirthdayContent(loadedContent);
-      }
-    });
+    void Promise.all([loadBirthdayContent(), loadPrivateBirthdayContent()]).then(
+      ([loadedContent, privateContent]) => {
+        if (isMounted) {
+          setBirthdayContent(loadedContent);
+          setIsPublic(privateContent.isPublic);
+        }
+      },
+    );
 
     return () => {
       isMounted = false;
@@ -130,106 +136,139 @@ export default function HappyBirthdayPage() {
       __introAudio?: HTMLAudioElement;
       __catBirthdayAudio?: HTMLAudioElement;
       __singingAudio?: HTMLAudioElement;
+      __publicBirthdayAudio?: HTMLAudioElement;
     };
     const introAudio = globalWindow.__introAudio;
     let isDisposed = false;
 
-    const startCatBirthdayTrack = () => {
+    const startBirthdayTrack = () => {
       if (isDisposed || catAudioRef.current) {
         return;
       }
 
-      const catAudio = new Audio(CAT_HAPPY_BIRTHDAY_SRC);
-      catAudio.preload = "auto";
-      catAudio.volume = 1;
+      const birthdayAudioSrc = isPublic ? PUBLIC_BIRTHDAY_SONG_SRC : CAT_HAPPY_BIRTHDAY_SRC;
+      const birthdayAudio = new Audio(birthdayAudioSrc);
+      birthdayAudio.preload = "auto";
+      birthdayAudio.volume = 1;
       let hasStartedSinging = false;
 
       const onTimeUpdate = () => {
-        if (!Number.isFinite(catAudio.duration) || catAudio.duration <= 0) {
+        if (!Number.isFinite(birthdayAudio.duration) || birthdayAudio.duration <= 0) {
           return;
         }
 
-        const singingStart = Math.max(0, catAudio.duration - 1.5);
-        if (!hasStartedSinging && catAudio.currentTime >= singingStart) {
-          hasStartedSinging = true;
-          const singingAudio = new Audio(SINGING_SRC);
-          singingAudio.preload = "auto";
-          singingAudioRef.current = singingAudio;
-          globalWindow.__singingAudio = singingAudio;
+        // For private mode, start singing near the end of cat audio
+        if (!isPublic) {
+          const singingStart = Math.max(0, birthdayAudio.duration - 1.5);
+          if (!hasStartedSinging && birthdayAudio.currentTime >= singingStart) {
+            hasStartedSinging = true;
+            const singingAudio = new Audio(SINGING_SRC);
+            singingAudio.preload = "auto";
+            singingAudioRef.current = singingAudio;
+            globalWindow.__singingAudio = singingAudio;
 
-          const maybeStartConfetti = () => {
-            if (!didTriggerConfettiRef.current) {
-              didTriggerConfettiRef.current = true;
-              setShowConfetti(true);
-            }
-          };
-
-          const onSingingTimeUpdate = () => {
-            if (singingAudio.currentTime >= 5) {
-              maybeStartConfetti();
-              singingAudio.removeEventListener("timeupdate", onSingingTimeUpdate);
-            }
-          };
-
-          singingAudio.addEventListener("timeupdate", onSingingTimeUpdate);
-
-          confettiTimerRef.current = window.setTimeout(() => {
-            if (!isDisposed) {
-              maybeStartConfetti();
-            }
-          }, 5000);
-
-          void singingAudio.play().catch(() => {
-            // Ignore autoplay interruptions and keep the experience flow safe.
-          });
-
-          singingAudio.addEventListener(
-            "ended",
-            () => {
-              singingAudio.removeEventListener("timeupdate", onSingingTimeUpdate);
-
-              if (cakePromptTimerRef.current !== null) {
-                window.clearTimeout(cakePromptTimerRef.current);
+            const maybeStartConfetti = () => {
+              if (!didTriggerConfettiRef.current) {
+                didTriggerConfettiRef.current = true;
+                setShowConfetti(true);
               }
+            };
 
-              cakePromptTimerRef.current = window.setTimeout(() => {
-                if (!isDisposed) {
-                  setCakeClicks(0);
-                  setShowCakePrompt(true);
-                  setIsCakeChallengeActive(true);
+            const onSingingTimeUpdate = () => {
+              if (singingAudio.currentTime >= 5) {
+                maybeStartConfetti();
+                singingAudio.removeEventListener("timeupdate", onSingingTimeUpdate);
+              }
+            };
+
+            singingAudio.addEventListener("timeupdate", onSingingTimeUpdate);
+
+            confettiTimerRef.current = window.setTimeout(() => {
+              if (!isDisposed) {
+                maybeStartConfetti();
+              }
+            }, 5000);
+
+            void singingAudio.play().catch(() => {
+              // Ignore autoplay interruptions and keep the experience flow safe.
+            });
+
+            singingAudio.addEventListener(
+              "ended",
+              () => {
+                singingAudio.removeEventListener("timeupdate", onSingingTimeUpdate);
+
+                if (cakePromptTimerRef.current !== null) {
+                  window.clearTimeout(cakePromptTimerRef.current);
                 }
-              }, 3000);
-            },
-            { once: true },
-          );
+
+                cakePromptTimerRef.current = window.setTimeout(() => {
+                  if (!isDisposed) {
+                    setCakeClicks(0);
+                    setShowCakePrompt(true);
+                    setIsCakeChallengeActive(true);
+                  }
+                }, 3000);
+              },
+              { once: true },
+            );
+          }
         }
 
-        const fadeStart = Math.max(0, catAudio.duration - 3);
+        // Apply fade-out for both public and private modes
+        const fadeStart = Math.max(0, birthdayAudio.duration - 3);
 
-        if (catAudio.currentTime >= fadeStart) {
-          const remaining = Math.max(0, catAudio.duration - catAudio.currentTime);
-          catAudio.volume = Math.max(0, Math.min(1, remaining / 3));
+        if (birthdayAudio.currentTime >= fadeStart) {
+          const remaining = Math.max(0, birthdayAudio.duration - birthdayAudio.currentTime);
+          birthdayAudio.volume = Math.max(0, Math.min(1, remaining / 3));
+        }
+
+        // For public mode, trigger confetti partway through
+        if (isPublic && birthdayAudio.currentTime >= 5 && !didTriggerConfettiRef.current) {
+          didTriggerConfettiRef.current = true;
+          setShowConfetti(true);
         }
       };
 
-      catAudio.addEventListener("timeupdate", onTimeUpdate);
+      birthdayAudio.addEventListener("timeupdate", onTimeUpdate);
 
-      catAudioRef.current = catAudio;
-      globalWindow.__catBirthdayAudio = catAudio;
+      catAudioRef.current = birthdayAudio;
+      if (isPublic) {
+        globalWindow.__publicBirthdayAudio = birthdayAudio;
+      } else {
+        globalWindow.__catBirthdayAudio = birthdayAudio;
+      }
 
-      void catAudio.play().catch(() => {
+      void birthdayAudio.play().catch(() => {
         // Ignore autoplay interruptions and keep the experience flow safe.
       });
 
-      catAudio.addEventListener(
+      birthdayAudio.addEventListener(
         "ended",
         () => {
-          catAudio.removeEventListener("timeupdate", onTimeUpdate);
-          if (catAudioRef.current === catAudio) {
+          birthdayAudio.removeEventListener("timeupdate", onTimeUpdate);
+          if (catAudioRef.current === birthdayAudio) {
             catAudioRef.current = null;
           }
-          if (globalWindow.__catBirthdayAudio === catAudio) {
+          if (isPublic && globalWindow.__publicBirthdayAudio === birthdayAudio) {
+            delete globalWindow.__publicBirthdayAudio;
+          } else if (!isPublic && globalWindow.__catBirthdayAudio === birthdayAudio) {
             delete globalWindow.__catBirthdayAudio;
+          }
+
+          // For public mode, show cake prompt after song ends
+          if (isPublic && !isDisposed) {
+            if (cakePromptTimerRef.current !== null) {
+              window.clearTimeout(cakePromptTimerRef.current);
+            }
+
+            cakePromptTimerRef.current = window.setTimeout(() => {
+              if (!isDisposed) {
+                setCakeClicks(0);
+                setShowCakePrompt(true);
+                setIsCakeChallengeActive(true);
+              }
+            }, 3000);
           }
         },
         { once: true },
@@ -237,16 +276,16 @@ export default function HappyBirthdayPage() {
     };
 
     if (!introAudio || introAudio.ended) {
-      startCatBirthdayTrack();
+      startBirthdayTrack();
     } else {
-      introAudio.addEventListener("ended", startCatBirthdayTrack, { once: true });
+      introAudio.addEventListener("ended", startBirthdayTrack, { once: true });
     }
 
     return () => {
       isDisposed = true;
 
       if (introAudio && !introAudio.ended) {
-        introAudio.removeEventListener("ended", startCatBirthdayTrack);
+        introAudio.removeEventListener("ended", startBirthdayTrack);
       }
 
       if (catAudioRef.current) {
@@ -255,6 +294,9 @@ export default function HappyBirthdayPage() {
 
         if (globalWindow.__catBirthdayAudio === catAudioRef.current) {
           delete globalWindow.__catBirthdayAudio;
+        }
+        if (globalWindow.__publicBirthdayAudio === catAudioRef.current) {
+          delete globalWindow.__publicBirthdayAudio;
         }
 
         catAudioRef.current = null;
@@ -281,7 +323,7 @@ export default function HappyBirthdayPage() {
         cakePromptTimerRef.current = null;
       }
     };
-  }, []);
+  }, [isPublic]);
 
   const playClickSound = () => {
     const clickAudio = new Audio("/Click.mp3");

@@ -1,0 +1,142 @@
+{
+  "isPublic": false,
+  "name": "Birthday Person's Name",
+  "title": "Happy Birthday!",
+  "messages": [
+    "First message to display on the happy birthday page",
+    "Second message that will cycle through",
+    "Third message for the carousel"
+  ],
+  "puzzleTwo": {
+    "petName": "a nickname for the person",
+    "roughQuestions": [
+      {
+        "question": "What is their favorite color?",
+        "answer": "BLUE"
+      },
+      {
+        "question": "What month were they born in?",
+        "answer": "JANUARY"
+      },
+      {
+        "question": "What is their favorite food?",
+        "answer": "PIZZA"
+      },
+      {
+        "question": "What is their favorite movie?",
+        "answer": "INCEPTION"
+      },
+      {
+        "question": "What sport do they play?",
+        "answer": "BASKETBALL"
+      },
+      {
+        "question": "What is their dream job?",
+        "answer": "ASTRONAUT"
+      },
+      {
+        "question": "What country do they want to visit?",
+        "answer": "JAPAN"
+      },
+      {
+        "question": "What is their favorite music genre?",
+        "answer": "ROCK"
+      },
+      {
+        "question": "What is a funny nickname for them?",
+        "answer": "SILLY"
+      },
+      {
+        "question": "What hobby do they love?",
+        "answer": "GAMING"
+      },
+      {
+        "question": "What is their best quality?",
+        "answer": "KINDNESS"
+      },
+      {
+        "question": "What makes them laugh?",
+        "answer": "JOKES"
+      },
+      {
+        "question": "What is their lucky number?",
+        "answer": "SEVEN"
+      },
+      {
+        "question": "What is something special about them?",
+        "answer": "UNIQUE"
+      }
+    ],
+    "crosswordClues": {
+      "across": [
+        {
+          "number": 1,
+          "clue": "What is their favorite color?",
+          "answer": "BLUE"
+        },
+        {
+          "number": 2,
+          "clue": "What month were they born in?",
+          "answer": "JANUARY"
+        },
+        {
+          "number": 5,
+          "clue": "What is their favorite food?",
+          "answer": "PIZZA"
+        },
+        {
+          "number": 6,
+          "clue": "What is their favorite movie?",
+          "answer": "INCEPTION"
+        },
+        {
+          "number": 8,
+          "clue": "What sport do they play?",
+          "answer": "BASKETBALL"
+        },
+        {
+          "number": 9,
+          "clue": "What is their dream job?",
+          "answer": "ASTRONAUT"
+        }
+      ],
+      "down": [
+        {
+          "number": 3,
+          "clue": "What country do they want to visit?",
+          "answer": "JAPAN"
+        },
+        {
+          "number": 4,
+          "clue": "What is their favorite music genre?",
+          "answer": "ROCK"
+        },
+        {
+          "number": 7,
+          "clue": "What is a funny nickname for them?",
+          "answer": "SILLY"
+        },
+        {
+          "number": 10,
+          "clue": "What hobby do they love?",
+          "answer": "GAMING"
+        },
+        {
+          "number": 11,
+          "clue": "What is their best quality?",
+          "answer": "KINDNESS"
+        },
+        {
+          "number": 12,
+          "clue": "What makes them laugh?",
+          "answer": "JOKES"
+        },
+        {
+          "number": 13,
+          "clue": "What is their lucky number?",
+          "answer": "SEVEN"
+        }
+      ]
+    }
+  }
+}
