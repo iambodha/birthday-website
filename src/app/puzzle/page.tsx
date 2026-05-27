@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { DEFAULT_NAME, loadBirthdayName } from "@/lib/birthday-content";
+import { DEFAULT_NAME, loadPrivateBirthdayContent } from "@/lib/birthday-content";
 import {
   startPuzzleBackgroundMusic,
   stopPuzzleBackgroundMusic,
@@ -37,6 +37,7 @@ export default function PuzzlePage() {
   const [showSolvedPopup, setShowSolvedPopup] = useState(false);
   const [lastError, setLastError] = useState(false);
   const [birthdayName, setBirthdayName] = useState(DEFAULT_NAME);
+  const [isPublic, setIsPublic] = useState(false);
   const [fenHistory, setFenHistory] = useState<string[]>([PUZZLE_FEN]);
   const solvedSequenceStartedRef = useRef(false);
   const confettiTimerRef = useRef<number | null>(null);
@@ -71,10 +72,13 @@ export default function PuzzlePage() {
   useEffect(() => {
     let isMounted = true;
 
-    void loadBirthdayName().then((loadedName) => {
-      if (isMounted) {
-        setBirthdayName(loadedName);
+    void loadPrivateBirthdayContent().then((loadedContent) => {
+      if (!isMounted) {
+        return;
       }
+
+      setBirthdayName(loadedContent.name);
+      setIsPublic(loadedContent.isPublic);
     });
 
     return () => {
@@ -305,6 +309,10 @@ export default function PuzzlePage() {
     router.push("/puzzle-2");
   };
 
+  const reviewerSkip = () => {
+    router.push("/puzzle-2");
+  };
+
   return (
     <main className="puzzle-page">
       {showSolvedConfetti ? (
@@ -342,6 +350,12 @@ export default function PuzzlePage() {
         <button type="button" className="puzzle-reset-button" onClick={resetPuzzle}>
           Reset Puzzle
         </button>
+
+        {isPublic ? (
+          <button type="button" className="puzzle-reset-button" onClick={reviewerSkip}>
+            Reviewer Skip
+          </button>
+        ) : null}
 
         <div
           className={`puzzle-board ${lastError ? "puzzle-board--error" : ""}`}

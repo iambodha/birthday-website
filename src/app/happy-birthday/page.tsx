@@ -2,11 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  DEFAULT_BIRTHDAY_CONTENT,
-  loadBirthdayContent,
-  loadPrivateBirthdayContent,
-} from "@/lib/birthday-content";
+import { DEFAULT_BIRTHDAY_CONTENT, loadPrivateBirthdayContent } from "@/lib/birthday-content";
 import {
   CAT_HAPPY_BIRTHDAY_SRC,
   DROP_DELAY_MS,
@@ -54,14 +50,12 @@ export default function HappyBirthdayPage() {
   useEffect(() => {
     let isMounted = true;
 
-    void Promise.all([loadBirthdayContent(), loadPrivateBirthdayContent()]).then(
-      ([loadedContent, privateContent]) => {
-        if (isMounted) {
-          setBirthdayContent(loadedContent);
-          setIsPublic(privateContent.isPublic);
-        }
-      },
-    );
+    void loadPrivateBirthdayContent().then((loadedContent) => {
+      if (isMounted) {
+        setBirthdayContent(loadedContent);
+        setIsPublic(loadedContent.isPublic);
+      }
+    });
 
     return () => {
       isMounted = false;
@@ -335,6 +329,11 @@ export default function HappyBirthdayPage() {
   const handleCakeClick = () => {
     playClickSound();
 
+    if (isPublic) {
+      router.push("/puzzle");
+      return;
+    }
+
     if (!isCakeChallengeActive) {
       return;
     }
@@ -397,7 +396,9 @@ export default function HappyBirthdayPage() {
 
           {showCakePrompt ? (
             <div className="celebration-cake-prompt" role="status" aria-live="polite">
-              Click on your birthday cake three times.
+              {isPublic
+                ? "Click on your birthday cake to continue."
+                : "Click on your birthday cake three times."}
             </div>
           ) : null}
           <h1 className="celebration-title">{birthdayContent.title}</h1>

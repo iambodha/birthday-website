@@ -8,8 +8,8 @@ import {
 } from "@/lib/background-music";
 import {
   DEFAULT_PUZZLE_TWO_CONTENT,
+  loadPrivateBirthdayContent,
   type PuzzleTwoContent,
-  loadPuzzleTwoContent,
 } from "@/lib/birthday-content";
 
 type CellData = [row: number, col: number, number: number | null];
@@ -108,6 +108,7 @@ export default function PuzzleTwoPage() {
   const router = useRouter();
   const [letters, setLetters] = useState<Record<string, string>>({});
   const [puzzleContent, setPuzzleContent] = useState<PuzzleTwoContent>(DEFAULT_PUZZLE_TWO_CONTENT);
+  const [isPublic, setIsPublic] = useState(false);
   const [isSolved, setIsSolved] = useState(false);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const solvedSequenceStartedRef = useRef(false);
@@ -115,13 +116,14 @@ export default function PuzzleTwoPage() {
   useEffect(() => {
     let isMounted = true;
 
-    void loadPuzzleTwoContent()
+    void loadPrivateBirthdayContent()
       .then((data) => {
         if (!isMounted) {
           return;
         }
 
-        setPuzzleContent(data);
+        setPuzzleContent(data.puzzleTwo);
+        setIsPublic(data.isPublic);
       })
       .catch(() => {
         // Keep placeholder content when private file is missing or malformed.
@@ -255,9 +257,13 @@ export default function PuzzleTwoPage() {
     setLetters((prev) => ({ ...prev, [key]: cleanValue }));
   };
 
+  const reviewerSkip = () => {
+    router.push("/puzzle-3");
+  };
+
   return (
     <main
-      aria-label={`Puzzle 2 crossword with ${roughQuestionCount} source questions`}
+      aria-label={isPublic ? "Puzzle 2 crossword" : `Puzzle 2 crossword with ${roughQuestionCount} source questions`}
       style={{
         minHeight: "100svh",
         padding: "clamp(1rem, 2vw, 2rem)",
@@ -379,19 +385,49 @@ export default function PuzzleTwoPage() {
           >
             Puzzle 2: Crossword
           </h1>
-          <p
-            style={{
-              margin: "0.65rem auto 0",
-              maxWidth: "42rem",
-              color: "#cbd5e1",
-              fontSize: "clamp(0.98rem, 1.7vw, 1.15rem)",
-              lineHeight: 1.45,
-              textWrap: "balance",
-            }}
-          >
-            the last puzzle, well even 500 elo can do. use your brains on this, {puzzleContent.petName}.
-          </p>
+          {isPublic ? null : (
+            <p
+              style={{
+                margin: "0.65rem auto 0",
+                maxWidth: "42rem",
+                color: "#cbd5e1",
+                fontSize: "clamp(0.98rem, 1.7vw, 1.15rem)",
+                lineHeight: 1.45,
+                textWrap: "balance",
+              }}
+            >
+              the last puzzle, well even 500 elo can do. use your brains on this, {puzzleContent.petName}.
+            </p>
+          )}
         </header>
+
+        {isPublic ? (
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: "1rem" }}>
+            <button
+              type="button"
+              onClick={reviewerSkip}
+              style={{
+                border: "1px solid rgba(96, 165, 250, 0.65)",
+                background: "rgba(37, 99, 235, 0.18)",
+                color: "#bfdbfe",
+                fontWeight: 700,
+                borderRadius: "0.6rem",
+                padding: "0.55rem 1rem",
+                cursor: "pointer",
+                fontSize: "0.92rem",
+                transition: "all 180ms ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "rgba(37, 99, 235, 0.3)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "rgba(37, 99, 235, 0.18)";
+              }}
+            >
+              Reviewer Skip
+            </button>
+          </div>
+        ) : null}
 
         <div style={{ display: "grid", placeItems: "center" }}>
           <div
@@ -400,54 +436,56 @@ export default function PuzzleTwoPage() {
               gap: "2px",
               gridTemplateColumns: `repeat(${COLS}, minmax(1.8rem, 2.32rem))`,
               gridTemplateRows: `repeat(${ROWS}, minmax(1.8rem, 2.32rem))`,
-              padding: "0.45rem",
-              borderRadius: "0.8rem",
-              background: "#020617",
-              border: "3px solid #334155",
-              boxShadow: "0 16px 34px rgba(2, 6, 23, 0.7)",
-              overflowX: "auto",
-              maxWidth: "100%",
-            }}
-          >
-            {Array.from({ length: ROWS }).map((_, row) =>
-              Array.from({ length: COLS }).map((_, col) => {
-                const data = getCellData(row, col);
-                const isPlayable = Boolean(data);
-                const number = data?.[2] ?? null;
-                const key = `${row}-${col}`;
-                const isLightCell = (row + col) % 2 === 0;
-
-                return (
-                  <div
-                    key={key}
+              {isPublic ? null : (
+                <div
+                  style={{
+                    marginTop: "1.5rem",
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(15rem, 1fr))",
+                    gap: "1rem",
+                  }}
+                >
+                  <section
                     style={{
-                      position: "relative",
-                      width: "100%",
-                      height: "100%",
-                      background: isPlayable
-                        ? isSolved
-                          ? isLightCell
-                            ? "#4ade80"
-                            : "#22c55e"
-                          : isLightCell
-                            ? "#f8fafc"
-                            : "#e2e8f0"
-                        : "#0f172a",
-                      border: isPlayable
-                        ? isSolved
-                          ? "1px solid #16a34a"
-                          : "1px solid #94a3b8"
-                        : "1px solid #0f172a",
-                      transition: "background-color 220ms ease, border-color 220ms ease",
+                      borderRadius: "1rem",
+                      padding: "0.95rem 1rem",
+                      border: "1px solid rgba(148, 163, 184, 0.28)",
+                      background: "linear-gradient(180deg, rgba(15, 23, 42, 0.78) 0%, rgba(15, 23, 42, 0.6) 100%)",
                     }}
                   >
-                    {number !== null && (
-                      <span
-                        style={{
-                          position: "absolute",
-                          top: "1px",
-                          left: "3px",
-                          fontSize: "0.5rem",
+                    <h2 style={{ margin: "0 0 0.6rem", color: "#f59e0b", fontSize: "0.95rem", letterSpacing: "0.08em" }}>
+                      ACROSS
+                    </h2>
+                    <ul style={{ margin: 0, padding: 0, listStyle: "none", color: "#e2e8f0", display: "grid", gap: "0.35rem" }}>
+                      {acrossClues.map((clue) => (
+                        <li key={`across-${clue.number}`} style={{ fontSize: "0.92rem" }}>
+                          {clue.number}. {clue.clue} ({clue.length} letters)
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+
+                  <section
+                    style={{
+                      borderRadius: "1rem",
+                      padding: "0.95rem 1rem",
+                      border: "1px solid rgba(148, 163, 184, 0.28)",
+                      background: "linear-gradient(180deg, rgba(15, 23, 42, 0.78) 0%, rgba(15, 23, 42, 0.6) 100%)",
+                    }}
+                  >
+                    <h2 style={{ margin: "0 0 0.6rem", color: "#60a5fa", fontSize: "0.95rem", letterSpacing: "0.08em" }}>
+                      DOWN
+                    </h2>
+                    <ul style={{ margin: 0, padding: 0, listStyle: "none", color: "#e2e8f0", display: "grid", gap: "0.35rem" }}>
+                      {downClues.map((clue) => (
+                        <li key={`down-${clue.number}`} style={{ fontSize: "0.92rem" }}>
+                          {clue.number}. {clue.clue} ({clue.length} letters)
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                </div>
+              )}
                           lineHeight: 1,
                           fontWeight: 800,
                           color: "#334155",

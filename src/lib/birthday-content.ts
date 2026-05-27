@@ -190,7 +190,7 @@ export async function loadPrivateBirthdayContent(): Promise<PrivateBirthdayConte
         ...DEFAULT_BIRTHDAY_CONTENT,
         name: DEFAULT_NAME,
         puzzleTwo: DEFAULT_PUZZLE_TWO_CONTENT,
-        isPublic: false,
+        isPublic: true,
       };
     }
 
@@ -201,7 +201,7 @@ export async function loadPrivateBirthdayContent(): Promise<PrivateBirthdayConte
       ...DEFAULT_BIRTHDAY_CONTENT,
       name: DEFAULT_NAME,
       puzzleTwo: DEFAULT_PUZZLE_TWO_CONTENT,
-      isPublic: false,
+      isPublic: true,
     };
   }
 }
