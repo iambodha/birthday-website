@@ -436,6 +436,54 @@ export default function PuzzleTwoPage() {
               gap: "2px",
               gridTemplateColumns: `repeat(${COLS}, minmax(1.8rem, 2.32rem))`,
               gridTemplateRows: `repeat(${ROWS}, minmax(1.8rem, 2.32rem))`,
+              padding: "0.45rem",
+              borderRadius: "0.8rem",
+              background: "#020617",
+              border: "3px solid #334155",
+              boxShadow: "0 16px 34px rgba(2, 6, 23, 0.7)",
+              overflowX: "auto",
+              maxWidth: "100%",
+            }}
+          >
+            {Array.from({ length: ROWS }).map((_, row) =>
+              Array.from({ length: COLS }).map((_, col) => {
+                const data = getCellData(row, col);
+                const isPlayable = Boolean(data);
+                const number = data?.[2] ?? null;
+                const key = `${row}-${col}`;
+                const isLightCell = (row + col) % 2 === 0;
+
+                return (
+                  <div
+                    key={key}
+                    style={{
+                      position: "relative",
+                      width: "100%",
+                      height: "100%",
+                      background: isPlayable
+                        ? isSolved
+                          ? isLightCell
+                            ? "#4ade80"
+                            : "#22c55e"
+                          : isLightCell
+                            ? "#f8fafc"
+                            : "#e2e8f0"
+                        : "#0f172a",
+                      border: isPlayable
+                        ? isSolved
+                          ? "1px solid #16a34a"
+                          : "1px solid #94a3b8"
+                        : "1px solid #0f172a",
+                      transition: "background-color 220ms ease, border-color 220ms ease",
+                    }}
+                  >
+                    {number !== null && (
+                      <span
+                        style={{
+                          position: "absolute",
+                          top: "1px",
+                          left: "3px",
+                          fontSize: "0.5rem",
                           lineHeight: 1,
                           fontWeight: 800,
                           color: "#334155",
