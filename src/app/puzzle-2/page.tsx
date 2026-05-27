@@ -436,56 +436,6 @@ export default function PuzzleTwoPage() {
               gap: "2px",
               gridTemplateColumns: `repeat(${COLS}, minmax(1.8rem, 2.32rem))`,
               gridTemplateRows: `repeat(${ROWS}, minmax(1.8rem, 2.32rem))`,
-              {isPublic ? null : (
-                <div
-                  style={{
-                    marginTop: "1.5rem",
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fit, minmax(15rem, 1fr))",
-                    gap: "1rem",
-                  }}
-                >
-                  <section
-                    style={{
-                      borderRadius: "1rem",
-                      padding: "0.95rem 1rem",
-                      border: "1px solid rgba(148, 163, 184, 0.28)",
-                      background: "linear-gradient(180deg, rgba(15, 23, 42, 0.78) 0%, rgba(15, 23, 42, 0.6) 100%)",
-                    }}
-                  >
-                    <h2 style={{ margin: "0 0 0.6rem", color: "#f59e0b", fontSize: "0.95rem", letterSpacing: "0.08em" }}>
-                      ACROSS
-                    </h2>
-                    <ul style={{ margin: 0, padding: 0, listStyle: "none", color: "#e2e8f0", display: "grid", gap: "0.35rem" }}>
-                      {acrossClues.map((clue) => (
-                        <li key={`across-${clue.number}`} style={{ fontSize: "0.92rem" }}>
-                          {clue.number}. {clue.clue} ({clue.length} letters)
-                        </li>
-                      ))}
-                    </ul>
-                  </section>
-
-                  <section
-                    style={{
-                      borderRadius: "1rem",
-                      padding: "0.95rem 1rem",
-                      border: "1px solid rgba(148, 163, 184, 0.28)",
-                      background: "linear-gradient(180deg, rgba(15, 23, 42, 0.78) 0%, rgba(15, 23, 42, 0.6) 100%)",
-                    }}
-                  >
-                    <h2 style={{ margin: "0 0 0.6rem", color: "#60a5fa", fontSize: "0.95rem", letterSpacing: "0.08em" }}>
-                      DOWN
-                    </h2>
-                    <ul style={{ margin: 0, padding: 0, listStyle: "none", color: "#e2e8f0", display: "grid", gap: "0.35rem" }}>
-                      {downClues.map((clue) => (
-                        <li key={`down-${clue.number}`} style={{ fontSize: "0.92rem" }}>
-                          {clue.number}. {clue.clue} ({clue.length} letters)
-                        </li>
-                      ))}
-                    </ul>
-                  </section>
-                </div>
-              )}
                           lineHeight: 1,
                           fontWeight: 800,
                           color: "#334155",
