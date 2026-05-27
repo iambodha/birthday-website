@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { DEFAULT_BIRTHDAY_CONTENT, loadPrivateBirthdayContent } from "@/lib/birthday-content";
+import { playAudioWithRetry } from "@/lib/audio-playback";
 import {
   CAT_HAPPY_BIRTHDAY_SRC,
   DROP_DELAY_MS,
@@ -183,9 +184,7 @@ export default function HappyBirthdayPage() {
               }
             }, 5000);
 
-            void singingAudio.play().catch(() => {
-              // Ignore autoplay interruptions and keep the experience flow safe.
-            });
+            playAudioWithRetry(singingAudio);
 
             singingAudio.addEventListener(
               "ended",
@@ -233,9 +232,7 @@ export default function HappyBirthdayPage() {
         globalWindow.__catBirthdayAudio = birthdayAudio;
       }
 
-      void birthdayAudio.play().catch(() => {
-        // Ignore autoplay interruptions and keep the experience flow safe.
-      });
+      playAudioWithRetry(birthdayAudio);
 
       birthdayAudio.addEventListener(
         "ended",
@@ -269,7 +266,7 @@ export default function HappyBirthdayPage() {
       );
     };
 
-    if (!introAudio || introAudio.ended) {
+    if (!introAudio || introAudio.ended || introAudio.paused) {
       startBirthdayTrack();
     } else {
       introAudio.addEventListener("ended", startBirthdayTrack, { once: true });
@@ -321,9 +318,7 @@ export default function HappyBirthdayPage() {
 
   const playClickSound = () => {
     const clickAudio = new Audio("/Click.mp3");
-    void clickAudio.play().catch(() => {
-      // Ignore playback failures when browser blocks immediate audio.
-    });
+    playAudioWithRetry(clickAudio);
   };
 
   const handleCakeClick = () => {

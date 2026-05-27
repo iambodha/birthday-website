@@ -8,6 +8,7 @@ import {
   readProgress,
   saveProgress,
 } from "@/lib/experience-state";
+import { playAudioWithRetry } from "@/lib/audio-playback";
 
 const MESSAGE =
   "To experience the website to the fullest, please go on your computer and turn up the volume and brightness. Enter fullscreen, press enter, and enjoy!";
@@ -23,9 +24,7 @@ export default function Home() {
 
   const playClickSound = () => {
     const clickAudio = new Audio("/Click.mp3");
-    void clickAudio.play().catch(() => {
-      // Ignore playback failures when browser blocks immediate audio.
-    });
+    playAudioWithRetry(clickAudio);
   };
 
   useEffect(() => {
@@ -58,9 +57,7 @@ export default function Home() {
       typingAudioRef.current = null;
     };
 
-    void typingAudio.play().catch(() => {
-      // Ignore autoplay rejections; audio will play once user interacts.
-    });
+    playAudioWithRetry(typingAudio);
 
     let index = 0;
     const timer = window.setInterval(() => {
@@ -135,7 +132,6 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={() => {
-                    playClickSound();
                     setChoice("yes");
                     setShowReadyModal(false);
 
@@ -149,7 +145,7 @@ export default function Home() {
                     };
 
                     introAudioWindow.__introAudio = audio;
-                    void audio.play();
+                    playAudioWithRetry(audio);
                     router.push("/happy-birthday");
                   }}
                   className="border-2 border-green-300 bg-green-600 px-7 py-3 text-lg font-bold uppercase tracking-[0.12em] text-white shadow-[0_4px_0_0_#166534] transition hover:brightness-110 active:translate-y-[2px] active:shadow-[0_2px_0_0_#166534]"

@@ -17,7 +17,7 @@ type Direction = "across" | "down";
 
 const ROWS = 12;
 const COLS = 12;
-const MISSION_SUCCESS_SOUND_SRC = "/mission accomplished.mp3";
+const MISSION_SUCCESS_SOUND_SRC = "/Mission Accomplished.mp3";
 
 const BASE_CELLS: CellData[] = [
   [0, 1, 3],
